@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src https://dashscope.aliyuncs.com; img-src 'self' data:; media-src https://*; script-src 'self'; style-src 'self' 'unsafe-inline'">
+  <title>HHVideo - 视频生成</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f0f2f5;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 32px 20px;
+      -webkit-user-select: none;
+    }
+    .container {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,.08);
+      padding: 32px;
+      width: 100%;
+      max-width: 560px;
+    }
+    h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1a1a2e;
+      text-align: center;
+      margin-bottom: 4px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #999;
+      font-size: 12px;
+      margin-bottom: 28px;
+    }
+    .form-group { margin-bottom: 18px; }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 5px;
+    }
+    textarea, select {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1px solid #d9d9d9;
+      border-radius: 8px;
+      font-size: 13px;
+      transition: border-color .2s;
+      outline: none;
+      background: #fff;
+      font-family: inherit;
+    }
+    textarea:focus, select:focus {
+      border-color: #4a6cf7;
+      box-shadow: 0 0 0 2px rgba(74,108,247,.12);
+    }
+    textarea { resize: vertical; min-height: 72px; }
+    .radio-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .radio-group label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-weight: 400;
+      font-size: 13px;
+      color: #333;
+      cursor: pointer;
+    }
+    .radio-group input[type="radio"] {
+      accent-color: #4a6cf7;
+      width: 15px;
+      height: 15px;
+    }
+    .hidden { display: none !important; }
+    .row {
+      display: flex;
+      gap: 14px;
+    }
+    .row .form-group { flex: 1; }
+
+    .image-picker {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .image-picker button {
+      padding: 8px 16px;
+      border: 1px solid #d9d9d9;
+      border-radius: 8px;
+      background: #fff;
+      font-size: 13px;
+      cursor: pointer;
+      transition: border-color .2s;
+    }
+    .image-picker button:hover { border-color: #4a6cf7; }
+    #imageName { font-size: 12px; color: #52c41a; }
+    #clearImageBtn {
+      background: none;
+      border: none;
+      color: #999;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 0 4px;
+    }
+    #clearImageBtn:hover { color: #e74c3c; }
+
+    .btn {
+      width: 100%;
+      padding: 11px;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .btn-primary { background: #4a6cf7; color: #fff; }
+    .btn-primary:hover { background: #3b5de7; }
+    .btn-primary:disabled { background: #a0b0f0; cursor: not-allowed; }
+
+    .result {
+      margin-top: 20px;
+      padding: 14px;
+      border-radius: 8px;
+      background: #f8f9fc;
+      border: 1px solid #e8ecf4;
+      white-space: pre-wrap;
+      word-break: break-all;
+      font-size: 12px;
+      line-height: 1.6;
+      max-height: 260px;
+      overflow-y: auto;
+      display: none;
+    }
+    .result.show { display: block; }
+    .result.success { border-color: #52c41a; background: #f6ffed; }
+    .result.error { border-color: #ff4d4f; background: #fff2f0; }
+
+    .loading {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 14px;
+      color: #666;
+      font-size: 13px;
+    }
+    .loading.show { display: flex; }
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid #e8ecf4;
+      border-top-color: #4a6cf7;
+      border-radius: 50%;
+      animation: spin .6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .video-wrapper {
+      margin-top: 16px;
+      display: none;
+    }
+    .video-wrapper.show { display: block; }
+    .video-wrapper video {
+      width: 100%;
+      border-radius: 10px;
+      background: #000;
+    }
+
+    .request-id {
+      margin-top: 10px;
+      font-size: 12px;
+      color: #999;
+      display: none;
+      text-align: center;
+    }
+    .request-id.show { display: block; }
+
+    .task-info {
+      margin-top: 10px;
+      font-size: 12px;
+      color: #999;
+      text-align: center;
+    }
+
+    .settings-hint {
+      text-align: center;
+      font-size: 12px;
+      color: #bbb;
+      margin-bottom: 16px;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .overlay.hidden { display: none; }
+    .modal {
+      background: #fff;
+      border-radius: 14px;
+      padding: 28px;
+      width: 400px;
+      max-width: 90%;
+      box-shadow: 0 8px 32px rgba(0,0,0,.15);
+    }
+    .modal h2 {
+      font-size: 18px;
+      margin-bottom: 4px;
+      color: #1a1a2e;
+    }
+    .modal .desc {
+      font-size: 12px;
+      color: #999;
+      margin-bottom: 20px;
+    }
+    .modal input[type="password"] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #d9d9d9;
+      border-radius: 8px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .modal input[type="password"]:focus {
+      border-color: #4a6cf7;
+      box-shadow: 0 0 0 2px rgba(74,108,247,.12);
+    }
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      justify-content: flex-end;
+    }
+    .modal-actions .btn {
+      width: auto;
+      padding: 8px 20px;
+      font-size: 13px;
+    }
+    .btn-secondary {
+      background: #f0f0f0;
+      color: #333;
+    }
+    .btn-secondary:hover { background: #e0e0e0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>HHVideo</h1>
+    <p class="subtitle">基于阿里云百炼视频生成 API</p>
+    <p class="settings-hint">在菜单栏 HHVideo > 设置 中配置 API Key</p>
+
+    <div class="form-group">
+      <label>模型</label>
+      <select id="model">
+        <option value="happyhorse-1.0-t2v">happyhorse-1.0-t2v（文生视频）</option>
+        <option value="happyhorse-1.0-i2v">happyhorse-1.0-i2v（图生视频）</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>提示词</label>
+      <textarea id="prompt" placeholder="请输入视频内容描述..."></textarea>
+    </div>
+
+    <div class="form-group hidden" id="imageGroup">
+      <label>参考图片</label>
+      <div class="image-picker">
+        <button id="selectImageBtn">选择图片</button>
+        <span id="imageName" class="hidden"><span id="fileName"></span><button id="clearImageBtn">✕</button></span>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="form-group">
+        <label>分辨率</label>
+        <div class="radio-group">
+          <label><input type="radio" name="resolution" value="720P" checked /> 720P</label>
+          <label><input type="radio" name="resolution" value="1080P" /> 1080P</label>
+        </div>
+      </div>
+      <div class="form-group" id="ratioGroup">
+        <label>宽高比</label>
+        <div class="radio-group">
+          <label><input type="radio" name="ratio" value="9:16" /> 9:16</label>
+          <label><input type="radio" name="ratio" value="16:9" checked /> 16:9</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>时长</label>
+        <div class="radio-group">
+          <label><input type="radio" name="duration" value="5" checked /> 5s</label>
+          <label><input type="radio" name="duration" value="10" /> 10s</label>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" id="submitBtn">生成视频</button>
+
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <span>视频生成请求已提交，等待处理中...</span>
+    </div>
+
+    <div class="video-wrapper" id="videoWrapper">
+      <video id="videoPlayer" controls playsinline></video>
+    </div>
+
+    <div class="task-info" id="taskInfo"></div>
+
+    <div class="request-id" id="requestId"></div>
+    <div class="result" id="result"></div>
+
+    <div class="loading" id="pollingLoading">
+      <div class="spinner"></div>
+      <span id="pollingStatus">查询任务状态中...</span>
+    </div>
+  </div>
+
+  <div class="overlay hidden" id="settingsOverlay">
+    <div class="modal">
+      <h2>设置</h2>
+      <p class="desc">配置 DashScope API Key 作为全局参数</p>
+      <label style="font-size:13px;margin-bottom:5px">API Key</label>
+      <input type="password" id="settingsApiKey" placeholder="输入 DashScope API Key" />
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="settingsCancelBtn">取消</button>
+        <button class="btn btn-primary" id="settingsSaveBtn">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

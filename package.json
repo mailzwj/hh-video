@@ -19,11 +19,12 @@
       "preload.js",
       "index.html",
       "renderer.js",
-      "package.json"
+      "package.json",
+      "icon.png"
     ],
     "mac": {
       "target": ["dmg", "zip"],
-      "icon": null,
+      "icon": "icon.png",
       "artifactName": "${productName}-${version}-${arch}.${ext}"
     },
     "dmg": {
@@ -35,7 +36,11 @@
     },
     "win": {
       "target": ["nsis"],
-      "icon": null
+      "icon": "icon.png"
+    },
+    "linux": {
+      "target": ["AppImage"],
+      "icon": "icon.png"
     }
   },
   "devDependencies": {

@@ -25,6 +25,7 @@ function createWindow() {
     height: 860,
     resizable: false,
     title: 'HHVideo',
+    icon: path.join(__dirname, 'icon.png'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,

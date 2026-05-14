@@ -18,3 +18,8 @@ npm start
 或构建打包后，进入 `release` 目录通过安装包安装。
 
 首次使用在菜单栏 `HHVideo > 设置` 中填入 DashScope API Key。
+
+## 界面预览
+<img width="700" height="860" alt="首页" src="https://github.com/user-attachments/assets/e9ea7668-45f9-4015-8304-050548098ed9" />
+<img width="700" height="860" alt="设置" src="https://github.com/user-attachments/assets/6090bbd2-46ba-47b2-b905-41c665bf8144" />
+
